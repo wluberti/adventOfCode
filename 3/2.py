@@ -12,14 +12,14 @@ for i in range(SIZE):
     canvas.append([[]] * SIZE)    
 
 for line in data:
-    m = re.match(r"#(?P<id>\d+) @ (?P<xpos>\d+),(?P<ypos>\d+): (?P<xsize>\d+)x(?P<ysize>\d+)", line)
+    m = re.match(r"#(?P<id>\d+) @ (?P<xpos>\d+),(?P<ypos>\d+): (?P<width>\d+)x(?P<height>\d+)", line)
 
-    for x in range(int(m.group('xsize'))):
-        for y in range(int(m.group('ysize'))):
-            if not m.group('id') in canvas[int(m.group('xpos')) + x][int(m.group('ypos')) + y]:
-                canvas[int(m.group('xpos')) + x][int(m.group('ypos')) + y].append(m.group('id'))
+    for y in range(int(m.group('height'))):
+        for x in range(int(m.group('width'))):
+            if not m.group('id') in canvas[int(m.group('ypos')) + y][int(m.group('xpos')) + x]:
+                canvas[int(m.group('ypos')) + y][int(m.group('xpos')) + x].append(m.group('id'))
 
-for x in canvas:
-    for y in x:
-        if len(y) == 1:
-            print(y)
+for y in canvas:
+    for x in y:
+        if len(x) == 1:
+            print(x)
