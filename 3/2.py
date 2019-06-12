@@ -5,7 +5,7 @@ import re
 with open("input.txt", "r") as f:
     data = f.read().split("\n")
 
-SIZE = 1001
+SIZE = 1000
 canvas = []
 
 for i in range(SIZE):
@@ -20,8 +20,8 @@ for line in data:
     width = int(m['width'])
     height = int(m['height'])
 
-    for row in range(ypos, ypos + height+1):
-        for column in range(xpos, xpos + width+1):
+    for row in range(ypos, ypos + height):
+        for column in range(xpos, xpos + width):
             if not claimId in canvas[row][column]:
                 canvas[row][column].append(claimId)
                 
