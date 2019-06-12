@@ -16,10 +16,10 @@ for line in data:
 
     for x in range(int(m.group('xsize'))):
         for y in range(int(m.group('ysize'))):
-            if int(m.group('id')) in canvas[int(m.group('xpos')) + x][int(m.group('ypos')) + y]:
-                canvas[int(m.group('xpos')) + x][int(m.group('ypos')) + y].append(int(m.group('id')))
+            if not m.group('id') in canvas[int(m.group('xpos')) + x][int(m.group('ypos')) + y]:
+                canvas[int(m.group('xpos')) + x][int(m.group('ypos')) + y].append(m.group('id'))
 
-for x in range(SIZE):
-    for y in range(SIZE):
-        # if len(canvas[x][y]) == 1:
-            print(canvas[x][y])
+for x in canvas:
+    for y in x:
+        if len(y) == 1:
+            print(y)
