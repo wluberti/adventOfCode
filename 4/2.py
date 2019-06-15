@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
-# not working(shoudl be 131469), does work for part 2 though ;-)
-
+# 117061
 import re
 from pprint import pprint as pp
 
