@@ -5,7 +5,7 @@ $data = file(__DIR__ . "/day03_input.txt");
 function findSymbols(array $data): array {
     $symbols = [];
     foreach ($data as $line => $details) {
-        // Clean up
+        // To filter out the symbols, change all digits and points to whitespace
         $details = preg_replace("/[.\d]/", ' ', $details);
         // Unify symbols
         $details = preg_replace("/\S/", '*', $details);
@@ -28,9 +28,12 @@ function findNumbers(array $data): array {
         foreach ($matches as $numbersFound) {
             foreach ($numbersFound as $number) {
                 $numbers[] = [
-                    'line' => $line,
-                    'column' => strpos($details, $number),
                     'value' => $number,
+                    'coordinates' => buildNumberCoordinateMatrix([
+                        'line' => $line,
+                        'column' => strpos($details, $number),
+                        'length' => strlen($number),
+                    ])
                 ];
             }
         }
@@ -39,20 +42,63 @@ function findNumbers(array $data): array {
     return $numbers;
 }
 
-function findNeighbours(array $symbols, array $numbers) {
-    foreach ($symbols as $symbol) {
-        $searchRange = [
-            'minLine' => $symbol['line'] - 1,
-            'maxLine' => $symbol['line'] + 1,
-            'minColumn' => $symbol['column'] - 1,
-            'maxColumn' => $symbol['column'] + 1,
-        ];
+/**
+ * @param array $position Position of the first digit / symbol
+ * @return array
+ */
+function buildNumberCoordinateMatrix(array $position): array {
+    $coordinates = [];
 
-        
+    // line before position
+    if ($position['line'] != 0 ) {
+        for ($offset = -1; $offset <= $position['length'] ; $offset++) {
+            $coordinates[] = [
+                'line' => $position['line'] - 1,
+                'column' => $position['column'] + $offset
+            ];
+        }
     }
+    // line at current position
+    for ($offset = -1; $offset <= $position['length'] ; $offset++) {
+        $coordinates[] = [
+            'line' => $position['line'],
+            'column' => $position['column'] + $offset
+        ];
+    }
+    // line after position
+    if ($position['line'] != 139 ) {
+        for ($offset = -1; $offset <= $position['length'] ; $offset++) {
+            $coordinates[] = [
+                'line' => $position['line'] + 1,
+                'column' => $position['column'] + $offset
+            ];
+        }
+    }
+
+    return $coordinates;
 }
 
-//$symbols = findSymbols($data);
+function findTouches(array $symbols, array $numberCoordinates): int {
+    $result = 0;
+    foreach ($numberCoordinates as $number) {
+        foreach ($number['coordinates'] as $coordinate) {
+            foreach ($symbols as $symbol) {
+                if (
+                    $coordinate['line'] == $symbol['line']
+                    and $coordinate['column'] == $symbol['column']
+                ) {
+                    $result += $number['value'];
+                }
+            }
+        }
+    }
+
+    return $result;
+}
+
+$symbols = findSymbols($data);
 //print_r($symbols);
 $numbers = findNumbers($data);
-print_r($numbers);
+//print_r($numbers);
+
+print ('Total ==> ' . findTouches($symbols, $numbers) . PHP_EOL);
