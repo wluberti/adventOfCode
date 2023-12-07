@@ -53,9 +53,9 @@ function findNumbers(array $data): array {
 function buildNumberCoordinateMatrix(array $coordinate): array {
     $coordinates = [];
 
-    // line before position
+    // Positions before line of number
     if ($coordinate['line'] != 0 ) {
-        for ($offset = -1; $offset <= $coordinate['length'] + 1 ; $offset++) {
+        for ($offset = -1; $offset <= $coordinate['length'] ; $offset++) {
             $coordinates[] = [
                 'line' => $coordinate['line'] - 1,
                 'column' => $coordinate['column'] + $offset
@@ -66,17 +66,17 @@ function buildNumberCoordinateMatrix(array $coordinate): array {
     // Position left of number
     $coordinates[] = [
         'line' => $coordinate['line'],
-        'column' => $coordinate['column'] - 1
+        'column' => $coordinate['column'] - 1,
     ];
     // Position right of number
     $coordinates[] = [
         'line' => $coordinate['line'],
-        'column' => $coordinate['column'] + $coordinate['length'] // + 1
+        'column' => $coordinate['column'] + $coordinate['length']
     ];
 
-    // line after position
+    // Positions after line of number
     if ($coordinate['line'] != 139 ) {
-        for ($offset = -1; $offset <= $coordinate['length'] + 1 ; $offset++) {
+        for ($offset = -1; $offset <= $coordinate['length'] ; $offset++) {
             $coordinates[] = [
                 'line' => $coordinate['line'] + 1,
                 'column' => $coordinate['column'] + $offset
@@ -87,16 +87,16 @@ function buildNumberCoordinateMatrix(array $coordinate): array {
     return $coordinates;
 }
 
-function findTouches(array $symbols, array $numberCoordinates): int {
+function findTouches(array $symbolArray, array $numbersArray): int {
     $result = 0;
-    foreach ($symbols as $symbol) {
-        foreach ($numberCoordinates as $number) {
-            foreach ($number['coordinates'] as $coordinate) {
+    foreach ($symbolArray as $symbol) {
+        foreach ($numbersArray as $numberMatrix) {
+            foreach ($numberMatrix['coordinates'] as $coordinate) {
                 if (
                     $coordinate['line'] == $symbol['line']
                     and $coordinate['column'] == $symbol['column']
                 ) {
-                    $result += $number['value'];
+                    $result += $numberMatrix['value'];
                 }
             }
         }
