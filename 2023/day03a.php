@@ -7,14 +7,18 @@ function findSymbols(array $data): array {
     foreach ($data as $line => $details) {
         // To filter out the symbols, change all digits and points to whitespace
         $details = preg_replace("/[.\d]/", ' ', $details);
-        // Unify symbols
-        $details = preg_replace("/\S/", '*', $details);
+        // Unify symbols as 'x'
+        $details = preg_replace("/\S/", 'x', $details);
+
         // Find coordinates of symbols
-        if (strpos($details, '*')) {
-            $symbols[] = [
-                'line' => $line,
-                'column' => strpos($details, '*'),
-            ];
+        preg_match_all('/x/', $details, $allMatches, PREG_OFFSET_CAPTURE);
+        foreach ($allMatches as $matchesPerLine) {
+            foreach ($matchesPerLine as $match) {
+                $symbols[] = [
+                    'line' => $line,
+                    'column' => $match[1],
+                ];
+            }
         }
     }
 
@@ -43,34 +47,39 @@ function findNumbers(array $data): array {
 }
 
 /**
- * @param array $position Position of the first digit / symbol
- * @return array
+ * @param array $coordinate Coordinates of the first digit
+ * @return array with all the coordinates surrounding the number (not just the first digit)
  */
-function buildNumberCoordinateMatrix(array $position): array {
+function buildNumberCoordinateMatrix(array $coordinate): array {
     $coordinates = [];
 
     // line before position
-    if ($position['line'] != 0 ) {
-        for ($offset = -1; $offset <= $position['length'] ; $offset++) {
+    if ($coordinate['line'] != 0 ) {
+        for ($offset = -1; $offset <= $coordinate['length'] + 1 ; $offset++) {
             $coordinates[] = [
-                'line' => $position['line'] - 1,
-                'column' => $position['column'] + $offset
+                'line' => $coordinate['line'] - 1,
+                'column' => $coordinate['column'] + $offset
             ];
         }
     }
-    // line at current position
-    for ($offset = -1; $offset <= $position['length'] ; $offset++) {
-        $coordinates[] = [
-            'line' => $position['line'],
-            'column' => $position['column'] + $offset
-        ];
-    }
+
+    // Position left of number
+    $coordinates[] = [
+        'line' => $coordinate['line'],
+        'column' => $coordinate['column'] - 1
+    ];
+    // Position right of number
+    $coordinates[] = [
+        'line' => $coordinate['line'],
+        'column' => $coordinate['column'] + $coordinate['length'] // + 1
+    ];
+
     // line after position
-    if ($position['line'] != 139 ) {
-        for ($offset = -1; $offset <= $position['length'] ; $offset++) {
+    if ($coordinate['line'] != 139 ) {
+        for ($offset = -1; $offset <= $coordinate['length'] + 1 ; $offset++) {
             $coordinates[] = [
-                'line' => $position['line'] + 1,
-                'column' => $position['column'] + $offset
+                'line' => $coordinate['line'] + 1,
+                'column' => $coordinate['column'] + $offset
             ];
         }
     }
@@ -80,9 +89,9 @@ function buildNumberCoordinateMatrix(array $position): array {
 
 function findTouches(array $symbols, array $numberCoordinates): int {
     $result = 0;
-    foreach ($numberCoordinates as $number) {
-        foreach ($number['coordinates'] as $coordinate) {
-            foreach ($symbols as $symbol) {
+    foreach ($symbols as $symbol) {
+        foreach ($numberCoordinates as $number) {
+            foreach ($number['coordinates'] as $coordinate) {
                 if (
                     $coordinate['line'] == $symbol['line']
                     and $coordinate['column'] == $symbol['column']
@@ -102,3 +111,7 @@ $numbers = findNumbers($data);
 //print_r($numbers);
 
 print ('Total ==> ' . findTouches($symbols, $numbers) . PHP_EOL);
+
+// not 551046 (too low)
+// not 562163
+// not 596001
