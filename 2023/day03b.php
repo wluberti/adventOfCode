@@ -23,12 +23,12 @@ function createNumberBubble(array $data): array {
 
     for ($row = 0; $row < count($data); $row++) {
         for ($column = 0; $column < count($data[$row]); $column++) {
-            if ($data[$row][$column] !== '.' && is_numeric($data[$row][$column]) === false) {
+            if ($data[$row][$column] === '*') {
+                $numberParts = [];
                 foreach ($coordinatesArray as $coordinate) {
                     if (isset($data[$row + $coordinate[0]][$column + $coordinate[1]])
                         && is_numeric($data[$row + $coordinate[0]][$column + $coordinate[1]])
                     ) {
-
                         // Find the start of a number
                         $numberStart = false;
                         for ($i = $column + $coordinate[1]; ; $i--) {
@@ -56,8 +56,13 @@ function createNumberBubble(array $data): array {
                             }
                         }
 
-                        // Store the extracted number.
-                        $numbers[] = (int) $number;
+                        // Store
+                        $numberParts[] = (int) $number;
+
+                        // More than one gear number found, so multiply them together.
+                        if (count($numberParts) > 1) {
+                            $numbers[] = array_product($numberParts);
+                        }
                     }
                 }
             }
