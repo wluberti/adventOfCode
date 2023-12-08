@@ -4,19 +4,20 @@ $data = file(__DIR__ . "/day03_input.txt");
 
 function findSymbols(array $data): array {
     $symbols = [];
-    foreach ($data as $line => $details) {
-        // To filter out the symbols, change all digits and points to whitespace
+    foreach ($data as $index => $details) {
+        // To filter out the symbols, change all digits and dots to a space
         $details = preg_replace("/[.\d]/", ' ', $details);
-        // Unify symbols as 'x'
+        // So everything that is not a dot is a symbol. Unify them to 'x'
         $details = preg_replace("/\S/", 'x', $details);
 
         // Find coordinates of symbols
         preg_match_all('/x/', $details, $allMatches, PREG_OFFSET_CAPTURE);
         foreach ($allMatches as $matchesPerLine) {
             foreach ($matchesPerLine as $match) {
+                // +1 on line and column for troubleshoot
                 $symbols[] = [
-                    'line' => $line,
-                    'column' => $match[1],
+                    'line' => intval($index + 1),
+                    'column' => intval($match[1] + 1),
                 ];
             }
         }
@@ -27,15 +28,16 @@ function findSymbols(array $data): array {
 
 function findNumbers(array $data): array {
     $numbers = [];
-    foreach ($data as $line => $details) {
+    foreach ($data as $index => $details) {
         preg_match_all("/\d+/", $details, $matches);
         foreach ($matches as $numbersFound) {
             foreach ($numbersFound as $number) {
+                // +1 on line and column for troubleshoot
                 $numbers[] = [
                     'value' => $number,
-                    'coordinates' => buildNumberCoordinateMatrix([
-                        'line' => $line,
-                        'column' => strpos($details, $number),
+                    'coordinates' => buildNumberBubble([
+                        'line' => intval($index + 1),
+                        'column' => strpos($details, $number) + 1,
                         'length' => strlen($number),
                     ])
                 ];
@@ -50,36 +52,14 @@ function findNumbers(array $data): array {
  * @param array $coordinate Coordinates of the first digit
  * @return array with all the coordinates surrounding the number (not just the first digit)
  */
-function buildNumberCoordinateMatrix(array $coordinate): array {
+function buildNumberBubble(array $coordinate): array {
     $coordinates = [];
 
-    // Positions before line of number
-    if ($coordinate['line'] != 0 ) {
-        for ($offset = -1; $offset <= $coordinate['length'] ; $offset++) {
+    for ($yPosition = -1; $yPosition <= 1; $yPosition++) {
+        for ($xPosition = -1; $xPosition <= $coordinate['length']; $xPosition++) {
             $coordinates[] = [
-                'line' => $coordinate['line'] - 1,
-                'column' => $coordinate['column'] + $offset
-            ];
-        }
-    }
-
-    // Position left of number
-    $coordinates[] = [
-        'line' => $coordinate['line'],
-        'column' => $coordinate['column'] - 1,
-    ];
-    // Position right of number
-    $coordinates[] = [
-        'line' => $coordinate['line'],
-        'column' => $coordinate['column'] + $coordinate['length']
-    ];
-
-    // Positions after line of number
-    if ($coordinate['line'] != 139 ) {
-        for ($offset = -1; $offset <= $coordinate['length'] ; $offset++) {
-            $coordinates[] = [
-                'line' => $coordinate['line'] + 1,
-                'column' => $coordinate['column'] + $offset
+                'line' => intval($coordinate['line']) + $yPosition,
+                'column' => intval($coordinate['column']) + $xPosition,
             ];
         }
     }
@@ -89,14 +69,15 @@ function buildNumberCoordinateMatrix(array $coordinate): array {
 
 function findTouches(array $symbolArray, array $numbersArray): int {
     $result = 0;
-    foreach ($symbolArray as $symbol) {
-        foreach ($numbersArray as $numberMatrix) {
-            foreach ($numberMatrix['coordinates'] as $coordinate) {
+
+    foreach ($numbersArray as $numberBubble) {
+        foreach ($numberBubble['coordinates'] as $coordinate) {
+            foreach ($symbolArray as $symbol) {
                 if (
                     $coordinate['line'] == $symbol['line']
                     and $coordinate['column'] == $symbol['column']
                 ) {
-                    $result += $numberMatrix['value'];
+                    $result += $numberBubble['value'];
                 }
             }
         }
@@ -112,6 +93,12 @@ $numbers = findNumbers($data);
 
 print ('Total ==> ' . findTouches($symbols, $numbers) . PHP_EOL);
 
+//print_r(strpos('620123', '620'));
+
 // not 551046 (too low)
 // not 562163
 // not 596001
+// not 560884
+// not 579281
+// not 612751
+// not 629533
