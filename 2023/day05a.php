@@ -56,28 +56,31 @@ function findDestinationSeed(int $seed, array $ranges): int {
     }
 }
 
-function almanacWalk(array $seeds, string $section, $nextSeeds = []) {
+function almanacWalk(int $seed, string $section) {
     global $almanac;
 
-    foreach ($seeds as $seed) {
-        foreach ($almanac[$section] as $ranges) {
-            $nextSeeds[] = findDestinationSeed($seed, $ranges);
-        }
-
+    foreach ($almanac[$section] as $ranges) {
+        $nextSeeds[] = findDestinationSeed($seed, $ranges);
     }
+
     $nextSeeds = array_unique($nextSeeds);
 
     if ($section === 'humidity-to-location') {
         return array_values($nextSeeds);
     }
+    foreach ($nextSeeds as $nextSeed) {
+        return almanacWalk($nextSeed, findNextSectionName($section));
+    }
 
-    return almanacWalk($nextSeeds, findNextSectionName($section));
 }
 
 $locations = [];
-$locations[] = almanacWalk($startingSeeds, 'seed-to-soil');
+foreach ($startingSeeds as $startingSeed) {
+    $locations[] = almanacWalk($startingSeed, 'seed-to-soil');
+}
 
-print_r($almanac);
+
+print_r($locations);
 
 print PHP_EOL . 'EOF' . PHP_EOL;
 
