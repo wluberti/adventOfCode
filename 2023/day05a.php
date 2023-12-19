@@ -4,85 +4,95 @@ $data = file(__DIR__ . '/day05_input.txt');
 
 $startingSeeds = [];
 $almanac = [];
-$section = '';
 
 // Build the almanac
 foreach ($data as $line) {
     // Populate seeds
-    preg_match("/^(?'verb'[a-zA-Z-]+).*:.?(?'seeds'.*)/", $line, $verbs);
-    if(!empty($verbs['seeds'])) {
-        $startingSeeds = array_map('intval', explode(' ', $verbs['seeds']));
+    if (str_contains($line, 'seeds: ')) {
+        preg_match("/seeds: (.*)/", $line, $seeds);
+        $startingSeeds = array_map('intval', explode(' ', $seeds[1]));
         continue;
     }
 
-    // Define section
-    if(!empty($verbs['verb'])) {
-        $section = $verbs['verb'];
+    // Define map
+    if (str_contains($line, 'map:')) {
+        preg_match("/(.*) map:/", $line, $mapName);
+        $currentMapName = $mapName[1];
+
+        if (count($almanac) > 1) {
+            $almanac[count($almanac) - 2]->setNextMapName($almanac[count($almanac) - 1]->getName());
+        }
+
+        $almanac[] = new Map($currentMapName);
         continue;
     }
 
-    // Populate the rest of the almanac
-    preg_match_all('/\d+/', $line, $matches);
-    foreach ($matches as $match) {
-        if(empty($match)) continue;
-
-        $almanac[$section][] = [
-            'destination' => (int) $match[0],
-            'source' => (int) $match[1],
-            'length' => (int) $match[2] -1,
-        ];
-    }
-}
-
-
-function findNextSectionName(string $section): string {
-    global $almanac;
-    list ($source, $destination) = explode('-to-', $section);
-    foreach (array_keys($almanac) as $sectionName) {
-        if (preg_match("/^$destination/", $sectionName)) {
-            return $sectionName;
+    // Populate the ranges
+    if (preg_match_all('/\d+/', $line, $matches)) {
+        foreach ($matches as $match) {
+            $range = new Range(
+                intval($match[0]),
+                intval($match[1]),
+                intval($match[2]),
+            );
+            $almanac[count($almanac) -1]->ranges[] = $range;
         }
     }
 }
 
-function findDestinationSeed(int $seed, array $ranges): int {
-    if ($seed >= (int) $ranges['source']
-        && $seed <= (int) $ranges['source'] + (int) $ranges['length']
-    ) {
-        $offset = $seed - (int) $ranges['source'];
-        return $offset + (int) $ranges['destination'];
-    } else {
-        return $seed;
+$minValue = PHP_FLOAT_MAX;
+foreach ($startingSeeds as $seed) {
+    $sourceSeed = $seed;
+    foreach ($almanac as $currentMap) {
+        $seed = $currentMap->getMappedValue($seed);
+    }
+    $minValue = min($seed, $minValue);
+}
+echo $minValue ."\n";
+
+class Map {
+    public string $nextMapName = '';
+    public array $ranges = [];
+
+    public function __construct(
+        public string $name
+    ) { /* Empty */ }
+
+    public function getMappedValue(int $value): int {
+        foreach ($this->ranges as $range) {
+            if ($range->sourceStart<= $value && $value <= $range->getSourceEnd()) {
+                return $range->getMappedValue($value);
+            }
+        }
+
+        return $value;
+    }
+
+    public function setNextMapName(string $nextMapName): void {
+        $this->nextMapName = $nextMapName;
+    }
+
+    public function getNextMapName(): string {
+        return $this->nextMapName;
+    }
+
+    public function getName(): string {
+        return $this->name;
     }
 }
 
-function almanacWalk(int $seed, string $section) {
-    global $almanac;
+class Range {
+    public function __construct(
+        public int $destinationStart,
+        public int $sourceStart,
+        public int $length,
+    ) { /* Empty */ }
 
-    foreach ($almanac[$section] as $ranges) {
-        $nextSeeds[] = findDestinationSeed($seed, $ranges);
+    public function getSourceEnd(): int {
+        return $this->sourceStart + $this->length;
     }
 
-    $nextSeeds = array_unique($nextSeeds);
-
-    if ($section === 'humidity-to-location') {
-        return array_values($nextSeeds);
+    public function getMappedValue($value): int {
+        return  $value - $this->sourceStart + $this->destinationStart;
     }
-    foreach ($nextSeeds as $nextSeed) {
-        return almanacWalk($nextSeed, findNextSectionName($section));
-    }
-
 }
-
-$locations = [];
-foreach ($startingSeeds as $startingSeed) {
-    $locations[] = almanacWalk($startingSeed, 'seed-to-soil');
-}
-
-
-print_r($locations);
-
-print PHP_EOL . 'EOF' . PHP_EOL;
-
-
-// 382895070
