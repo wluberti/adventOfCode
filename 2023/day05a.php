@@ -35,14 +35,13 @@ foreach ($data as $line) {
                 intval($match[1]),
                 intval($match[2]),
             );
-            $almanac[count($almanac) -1]->ranges[] = $range;
+            end($almanac)->ranges[] = $range;
         }
     }
 }
 
 $minValue = PHP_FLOAT_MAX;
 foreach ($startingSeeds as $seed) {
-    $sourceSeed = $seed;
     foreach ($almanac as $currentMap) {
         $seed = $currentMap->getMappedValue($seed);
     }
@@ -60,7 +59,7 @@ class Map {
 
     public function getMappedValue(int $value): int {
         foreach ($this->ranges as $range) {
-            if ($range->sourceStart<= $value && $value <= $range->getSourceEnd()) {
+            if ($range->sourceStart <= $value && $value <= $range->getSourceEnd()) {
                 return $range->getMappedValue($value);
             }
         }
