@@ -1,10 +1,9 @@
 <?php
 
-$data = file(__DIR__ . '/day07_testinput.txt');
-//$data = file(__DIR__ . '/day07_input.txt');
+//$data = file(__DIR__ . '/day07_testinput.txt');
+$data = file(__DIR__ . '/day07_input.txt');
 
 $rankList = [];
-$cards = [];
 $order = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
 $typeList = [
     0 => 'Five of a kind',
@@ -16,23 +15,34 @@ $typeList = [
     6 => 'High card',
 ];
 
-// Read the input file
+// Read the input file into $rankList
 foreach ($data as $line) {
     list($hand, $bid) = explode(' ', trim($line));
-    $cards[] = new Hand($hand, $bid);
+    new Hand($hand, $bid);
 }
 
-
-foreach ($cards as $card) {
-//    print $card->hand . " - " . $card->getType() . PHP_EOL;
+$sortedHands = [];
+foreach ($rankList as $ranking => $hands) {
+    usort($hands, 'Hand::compareHands');
+    $sortedHands[$ranking] = $hands;
 }
 
-print_r($rankList);
+$total = 0;
+$rank = 1;
+foreach (range(6, 0) as $index) {
+    if (key_exists($index, $sortedHands)) {
+        foreach ($sortedHands[$index] as $sortedHand) {
+            $total += $sortedHand->bid * $rank;
+            $rank++;
+        }
+    }
+}
+print $total;
+
 print PHP_EOL;
 
 class Hand {
-    public int $type = 6;
-    public int $rank = 0;
+    public int $type = 6; // Default the lowest ranking according to $typeList
 
     public function __construct(
         public string $hand,
@@ -45,6 +55,7 @@ class Hand {
     }
 
     public function setType(): void {
+        global $rankList;
         $handInfo = array_count_values(str_split($this->hand));
         arsort($handInfo);
 
@@ -63,31 +74,25 @@ class Hand {
             default:
                 die('should not happen');
         }
-
-        global $rankList;
         $rankList[$this->type][] = $this;
     }
 
-    public function compareHands(Hand $otherHand) {
-        $thisHand = str_split($this->hand);
-        $otherHand = str_split($otherHand->hand);
+    public static function compareHands(Hand $hand1, Hand $hand2) {
+        $hand1 = str_split($hand1->hand);
+        $hand2 = str_split($hand2->hand);
 
-        foreach ($thisHand as $index => $_) {
-            print "hand 1: {$thisHand[$index]} hand 2: {$otherHand[$index]} : Result: "
-                . $this->compareLetter($thisHand[$index], $otherHand[$index]) . PHP_EOL;
+        foreach ($hand1 as $index => $_) {
+            if (Hand::compareLetter($hand1[$index], $hand2[$index]) === 0) continue;
+            return Hand::compareLetter($hand1[$index], $hand2[$index]);
         }
+        return 0;
     }
 
-    // $result will be positive if $a is higher value than $b according to $order, negative is less or 0 when equal
-    function compareLetter(string $a, string $b): int {
+    public static function compareLetter(string $a, string $b): int {
         global $order;
         $indexA = array_search($a, $order);
         $indexB = array_search($b, $order);
 
-        return $indexB - $indexA;
-    }
-
-    public function setRank(int $rank): void {
-        $this->rank = $rank;
+        return $indexB <=> $indexA;
     }
 }
