@@ -1,7 +1,7 @@
 <?php
 
-//$data = file(__DIR__ . '/day07_testinput.txt');
-$data = file(__DIR__ . '/day07_input.txt');
+$data = file(__DIR__ . '/day07_testinput.txt');
+//$data = file(__DIR__ . '/day07_input.txt');
 
 $rankList = [];
 $order = ['A', 'K', 'Q', 'J', 'T', '9', '8', '7', '6', '5', '4', '3', '2'];
