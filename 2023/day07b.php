@@ -1,5 +1,7 @@
 <?php
 
+die('not working :-(');
+
 $data = file(__DIR__ . '/day07_testinput.txt');
 //$data = file(__DIR__ . '/day07_input.txt');
 
@@ -43,11 +45,15 @@ print PHP_EOL;
 
 class Hand {
     public int $type = 6; // Default the lowest ranking according to $typeList
+    public string $originalHand;
 
     public function __construct(
         public string $hand,
         public int $bid,
-    ) { $this->setType(); }
+    ) {
+        $this->originalHand = $hand;
+        $this->setType();
+    }
 
     public function getType(): string {
         global $typeList;
@@ -55,16 +61,61 @@ class Hand {
     }
 
     public function setType(): void {
-        global $rankList;
+        global $cardOrder, $rankList;
         $handInfo = array_count_values(str_split($this->hand));
         arsort($handInfo);
 
         if (array_key_exists('J', $handInfo)) {
-            print $this->hand . PHP_EOL;
-            print max(array_keys($handInfo)) . PHP_EOL;
-            print_r($handInfo);
+            print "=== Hand before tranform : {$this->hand}" . PHP_EOL;
+            $transformHandInfo = $handInfo;
+            switch (array_shift($transformHandInfo)) {
+                case 5: $this->type = 0; break;
+                case 4: $this->type = 1; break;
+                case 3:
+                    if (array_shift($transformHandInfo) === 2) { $this->type = 2; }
+                    else { $this->type = 3; }
+                    break;
+                case 2 :
+                    if (array_shift($transformHandInfo) === 2) { $this->type = 4; }
+                    else { $this->type = 5; }
+                    break;
+                case 1 : $this->type = 6; break;
+                default:
+                    die('should not happen');
+            }
+
+            print "=== Hand after tranform : {$this->hand}" . PHP_EOL;
+
+            $numberOfJs = 0;
+            $highestCardCount = 0;
+            $highestCardName = null;
+
+            // find highest non-J card in sorted 'ar'-sorted $handInfo
+            foreach ($handInfo as $card => $amount) {
+                $highestCardCount = max($highestCardCount, $amount);
+
+                if ($amount === $highestCardCount) {
+                    $highestCardName = $card;
+                }
+
+                // Find amount of J's and remove them from handInfo
+                if ($card === 'J') {
+                    $numberOfJs = $amount;
+                    unset($handInfo['J']);
+//                    continue;
+                }
+
+
+
+                print "J's {$numberOfJs} , highest card {$card} count {$highestCardCount}" .PHP_EOL;
+
+
+
+            }
         }
-        print('-----------------------' . PHP_EOL);;
+
+//        print_r($handInfo);
+        print('-----------------------' . PHP_EOL);
 
         switch (array_shift($handInfo)) {
             case 5: $this->type = 0; break;
@@ -95,10 +146,10 @@ class Hand {
         return 0;
     }
 
-    public static function compareLetter(string $a, string $b): int {
+    public static function compareLetter(string $letter1, string $letter2): int {
         global $order;
-        $indexA = array_search($a, $order);
-        $indexB = array_search($b, $order);
+        $indexA = array_search($letter1, $order);
+        $indexB = array_search($letter2, $order);
 
         return $indexB <=> $indexA;
     }
