@@ -48,4 +48,4 @@ foreach ($reports as $levels) {
     }
 }
 
-print "$total\n";
+print $total . PHP_EOL;

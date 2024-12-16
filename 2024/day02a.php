@@ -35,4 +35,4 @@ foreach ($reports as $report) {
     }
 }
 
-print "$total\n";
+print $total . PHP_EOL;
