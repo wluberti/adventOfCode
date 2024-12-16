@@ -6,38 +6,39 @@ foreach ($file as $line) {
     $data[] = str_split(trim($line));
 }
 
-// Code
-
+// Function to check for "XMAS" in all 8 directions
 function checkCoordinates(int $row, int $column): int {
     global $data;
-    $size = 140;
     $word = ['X', 'M', 'A', 'S'];
-    $offset = count($word) - 1;
     $found = 0;
 
+    // All 8 directions: [row_offset, col_offset]
     $directions = [
         [-1, -1], [-1, 0], [-1, 1],
-        [0,  -1], [ 0, 0], [ 0, 1],
-        [1,  -1], [ 1, 0], [ 1, 1],
+        [ 0, -1],          [ 0, 1],
+        [ 1, -1], [ 1, 0], [ 1, 1]
     ];
 
-    foreach ($directions as $direction) {
-        $foundWord = [];
+    foreach ($directions as [$rowOffset, $colOffset]) {
+        $matches = true;
 
-        foreach ($word as $index => $letter) {
-            $rowInData = $row + ($index * $direction[0]);
-            $columnInData = $column + ($index * $direction[1]);
+        for ($index = 0; $index < count($word); $index++) {
+            $newRow = $row + ($index * $rowOffset);
+            $newCol = $column + ($index * $colOffset);
 
-            if ($rowInData < $offset && $direction[0] === -1) { continue(2); }
-            if ($rowInData > $size - $offset && $direction[0] === 1) { continue(2); }
+            // Check boundaries
+            if ($newRow < 0 || $newRow >= count($data) || $newCol < 0 || $newCol >= count($data[$row])) {
+                $matches = false;
+                break;
+            }
 
-            if ($columnInData < $offset && $direction[1] === -1) { continue(2); }
-            if ($columnInData > $size - $offset && $direction[1] === 1) { continue(2); }
-
-            $foundWord[] = $data[$rowInData][$columnInData];
+            if ($data[$newRow][$newCol] !== $word[$index]) {
+                $matches = false;
+                break;
+            }
         }
 
-        if ($foundWord === $word) {
+        if ($matches) {
             $found++;
         }
     }
@@ -47,15 +48,14 @@ function checkCoordinates(int $row, int $column): int {
 
 $total = 0;
 
+// Iterate through the grid and check for "XMAS"
 foreach ($data as $line => $letters) {
     foreach ($letters as $index => $letter) {
-        $total += checkCoordinates($line, $index);
+        if ($letter === 'X') { // Optimization: Only start checking if the letter is 'X'
+            $total += checkCoordinates($line, $index);
+        }
     }
 }
 
 print('-----------------------' . PHP_EOL);
 print $total . PHP_EOL;
-
-// 2402 too low
-// 4838 not correct
-// 6333 too high
