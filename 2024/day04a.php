@@ -1,17 +1,18 @@
 <?php
 
+// Prepare the input
 $file = file(__DIR__ . '/day04_input.txt');
-
-// Filter the input
 foreach ($file as $line) {
     $data[] = str_split(trim($line));
 }
 
-function checkCoordinates(int $column, int $row): int {
+// Code
+
+function checkCoordinates(int $row, int $column): int {
     global $data;
-    $size = 139;
+    $size = 140;
     $word = ['X', 'M', 'A', 'S'];
-    $boundary = count($word) - 1;
+    $offset = count($word) - 1;
     $found = 0;
 
     $directions = [
@@ -21,23 +22,24 @@ function checkCoordinates(int $column, int $row): int {
     ];
 
     foreach ($directions as $direction) {
-        $count = 0;
+        $foundWord = [];
 
         foreach ($word as $index => $letter) {
-            $x = $row + ($index * $direction[0]);
-            $y = $column + ($index * $direction[1]);
+            $rowInData = $row + ($index * $direction[0]);
+            $columnInData = $column + ($index * $direction[1]);
 
-            if ($x < $boundary && $direction[0] === -1) { continue; }
-            if ($y < $boundary && $direction[1] === -1) { continue; }
-            if ($x > $size - $boundary && $direction[0] === 1) { continue; }
-            if ($y > $size - $boundary && $direction[1] === 1) { continue; }
+            if ($rowInData < $offset && $direction[0] === -1) { continue(2); }
+            if ($rowInData > $size - $offset && $direction[0] === 1) { continue(2); }
 
-            if ($data[$x][$y] == $letter) {
-                $count++;
-            }
+            if ($columnInData < $offset && $direction[1] === -1) { continue(2); }
+            if ($columnInData > $size - $offset && $direction[1] === 1) { continue(2); }
+
+            $foundWord[] = $data[$rowInData][$columnInData];
         }
 
-        if ($count == count($word)) { $found++; }
+        if ($foundWord === $word) {
+            $found++;
+        }
     }
 
     return $found;
@@ -46,14 +48,14 @@ function checkCoordinates(int $column, int $row): int {
 $total = 0;
 
 foreach ($data as $line => $letters) {
-    foreach ($letters as $column => $letter) {
-//        print('-----------------------' . PHP_EOL);
-//        print("$line, $column" . PHP_EOL);
-        $total += checkCoordinates($line, $column);
+    foreach ($letters as $index => $letter) {
+        $total += checkCoordinates($line, $index);
     }
 }
+
 print('-----------------------' . PHP_EOL);
 print $total . PHP_EOL;
 
 // 2402 too low
+// 4838 not correct
 // 6333 too high
